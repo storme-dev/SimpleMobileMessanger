@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+</head>
+<body>
+    
+    <div id="app">
+        <template v-if="page == 0">
+            <h1>Авторизация</h1>
+            <span class="error" v-if="error.length > 0">{{ error }}</span>
+            <div class="field" style="margin-top: 30px;"><input v-model="login" type="text" placeholder="Логин"></div>
+            <div class="field"><input v-model="password" type="password" placeholder="Пароль"></div>
+            <div class="button" @click="submit">Войти</div>
+            <span class="link" @click="switchPage">Перейти к регистрации</span>
+        </template>
+        <template v-else>
+            <h1>Регистрация</h1>
+            <span class="error" v-if="error.length > 0">{{ error }}</span>
+            <div class="field" style="margin-top: 30px;"><input v-model="login" type="text" placeholder="Логин"></div>
+            <div class="field"><input v-model="firstname" type="text" placeholder="Ваше имя"></div>
+            <div class="field"><input v-model="lastname" type="text" placeholder="Ваша фамилия"></div>
+            <div class="field"><input v-model="password" type="password" placeholder="Пароль"></div>
+            <div class="button" @click="submit">Создать аккаунт</div>
+            <span class="link" @click="switchPage">Перейти к авторизации</span>
+        </template>
+    </div>
+
+</body>
+</html>
+
+<style>
+
+html,body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#app {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+h1 {
+    margin-bottom: 30px;
+}
+
+.link {
+    color: #4646ff;
+    font-weight: 300;
+    font-size: 12px;
+    margin-top: 20px;
+}
+
+.button {
+    margin-top: 30px;
+    padding: 10px;
+    color: #4646ff;
+    cursor: pointer;
+    font-size: 17px;
+}
+
+.field {
+    margin-top: 20px;
+}
+
+.field input {
+    border: none;
+    border-bottom: 1px #ccc solid;
+    padding: 8px 18px;
+    font-size: 14px;
+}
+
+.field input:focus {
+    outline: none;
+}
+
+.error {
+    font-weight: 300;
+    font-size: 13px;
+    color: red;
+}
+
+</style>
+
+<script>
+
+function setCookie(name,value,days = 7) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days*24*60*60*1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+}
+
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0;i < ca.length;i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
+
+var HASH = getCookie('sfduyf673rgsdyf67');
+
+if(HASH != null)
+{
+    document.location.href = '/'
+}
+
+var app = new Vue({
+    el: '#app',
+    data: {
+        serverURL: 'http://localhost:3000',
+        login: '',
+        password: '',
+        firstname: '',
+        lastname: '',
+        error: '',
+        page: 0
+    },
+    methods: {
+        async submit() {
+            if(this.login.trim() == '') return this.error = 'Укажите логин!';
+            if(this.password.trim() == '') return this.error = 'Введите пароль!';
+
+            let response = await fetch('/auth', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body: JSON.stringify({ login: this.login, pass: this.password })
+            })
+
+            let result = await response.json()
+            if(result.success == 1)
+            {
+                setCookie('sfduyf673rgsdyf67', result.hash)
+                document.location.href = '/'
+            }
+            else
+            {
+                this.error = 'Неверный логин или пароль!'
+            }
+        },
+        switchPage() {
+            this.password = ''
+            this.error = ''
+
+            this.page = !this.page
+        }
+    }
+})
+    
+</script>
